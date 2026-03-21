@@ -1,40 +1,97 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { supabase } from './supabaseClient';
+import { CartProvider } from './context/CartContext';
+
+
+// Importación de Componentes y Páginas
 import Navbar from './components/Navbar';
-import ProductCard from './components/productCard';
-import { productos } from './data/products';
+import NavbarAdmin from './components/NavbarAdmin';
 import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart'; // 1. Importa tu nueva página
+import Cart from './pages/Cart';
+import Productos from './pages/Productos';
+import Admin from './pages/Admin';
+import Login from './pages/Login';
+import Inicio from './pages/Inicio'; // <--- Importante: Debe existir src/pages/Inicio.jsx
+import Nosotros from './pages/Nosotros';
 
-function Home() {
+
+/**
+ * COMPONENTE: LayoutSelector
+ * Decide qué Navbar mostrar según la URL actual.
+ */
+function LayoutSelector({ children }) {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
+
   return (
-    // Cambiamos el fondo a nuestro crema elegante y damos más espacio
-    <div className="bg-[#FDFBF7] min-h-screen py-16 px-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-serif text-[#2D2D2D] mb-12 text-center">Nuestra Colección</h1>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-          {productos.map((item) => (
-            <ProductCard key={item.id} producto={item} />
-          ))}
+    <>
+      {isAdminPath ? <NavbarAdmin /> : <Navbar />}
+      {children}
+    </>
+  );
+}
+
+/**
+ * COMPONENTE: ProtectedRoute
+ * Bloquea el acceso a /admin si no hay una sesión activa.
+ */
+function ProtectedRoute({ children }) {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return null; 
+
+  return session ? children : <Navigate to="/login" replace />;
+}
+
+// NOTA: Se eliminó la función Home() que estaba aquí para usar el archivo Inicio.jsx
+
+export default function App() {
+  return (
+    <CartProvider>
+      <BrowserRouter>
+        {/* Usamos bg-white para que combine con el nuevo diseño Premium */}
+        <div className="min-h-screen bg-white">
+          <LayoutSelector>
+            <Routes>
+              {/* Rutas Públicas */}
+              <Route path="/" element={<Inicio />} />
+              <Route path="/productos" element={<Productos />} />
+              <Route path="/producto/:id" element={<ProductDetail />} />
+              <Route path="/carrito" element={<Cart />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/nosotros" element={<Nosotros />} />
+
+              {/* Ruta Protegida */}
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } 
+              />
+
+              {/* Redirección por defecto */}
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </LayoutSelector>
         </div>
-      </div>
-    </div>
+      </BrowserRouter>
+    </CartProvider>
   );
 }
-
-function App() {
-  return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/producto/:id" element={<ProductDetail />} />
-          <Route path="/carrito" element={<Cart />} /> {/* 2. Nueva ruta */}
-        </Routes>
-      </div>
-    </BrowserRouter>
-  );
-}
-
-export default App;

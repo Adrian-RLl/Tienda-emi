@@ -4,87 +4,74 @@ export default function Inicio() {
   return (
     <div className="bg-white">
       
-      {/* SECCIÓN HERO (Presentación de Marca) 
-          h-[calc(100vh-80px)]: Altura total de pantalla menos Navbar.
-      */}
+      {/* SECCIÓN HERO (Presentación de Marca) */}
       <div className="relative w-full h-[calc(100vh-80px)] overflow-hidden">
         
-        {/* IMAGEN DE FONDO (Utiliza una foto artística de tu colección)
-            Usamos object-cover para que llene sin deformarse.
-        */}
         <img 
-          // Esta es una imagen de portada fija y segura
-          src="https://images.pexels.com/photos/1018911/pexels-photo-1018911.jpeg?auto=compress&cs=tinysrgb&w=2000" // <--- Foto 1 Principal
+          src="https://images.pexels.com/photos/1018911/pexels-photo-1018911.jpeg?auto=compress&cs=tinysrgb&w=2000"
           alt="Portada Colección EMI" 
-          className="w-full h-full object-cover object-center animate-fadeInScale scale-105" 
+          className="w-full h-full object-cover object-center animate-fadeInScale scale-100" 
         />
         
-        {/* Superposición Oscura sutil (overlay) */}
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"></div>
+        {/* Superposición más sutil */}
+        <div className="absolute inset-0 bg-black/20"></div>
 
         {/* CONTENIDO TEXTUAL CENTRADO */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-          <span className="text-white text-xs md:text-sm font-black tracking-[0.4em] uppercase mb-4 animate-fadeInDown">
+          <span className="text-white/90 text-sm font-medium tracking-[0.2em] uppercase mb-6 animate-fadeInDown">
             Colección Exclusiva 2026
           </span>
-          <h1 className="text-white text-5xl md:text-7xl font-serif font-bold tracking-tight leading-none mb-10 animate-fadeInScale">
-            La elegancia <br /> de lo simple
+          <h1 className="text-white text-5xl md:text-7xl font-bold tracking-tight leading-none mb-8 animate-fadeInScale">
+            La elegancia de lo simple
           </h1>
-          <p className="text-white/90 text-sm md:text-base max-w-xl leading-relaxed mb-12 animate-fadeInUp">
+          <p className="text-white/90 text-base md:text-lg max-w-xl leading-relaxed mb-10 animate-fadeInUp font-light">
             Descubre piezas atemporales diseñadas para resaltar tu feminidad natural. Vestidos que cuentan historias, para cada momento de tu vida.
           </p>
           
-          {/* BOTÓN DE ACCIÓN (Call to Action) */}
+          {/* BOTÓN DE ACCIÓN */}
           <Link 
             to="/productos" 
-            className="group relative bg-[#7A1F1F] text-white px-12 py-5 rounded-full font-black text-[10px] tracking-[0.2em] uppercase hover:bg-black transition-all duration-500 shadow-xl shadow-[#7A1F1F]/20 active:scale-95 animate-fadeInUp"
+            className="group relative bg-white text-gray-900 px-10 py-4 rounded-none font-medium text-sm tracking-wider uppercase hover:bg-gray-900 hover:text-white transition-all duration-300 animate-fadeInUp"
           >
             Ver Colección
-            {/* Pequeño destello de hover */}
-            <span className="absolute inset-0 rounded-full border border-white/30 scale-100 group-hover:scale-110 opacity-0 group-hover:opacity-100 transition-all duration-700"></span>
           </Link>
         </div>
       </div>
 
-      {/* SECCIÓN INFERIOR: Texto de Marca y Manifiesto (La de tu captura) */}
+      {/* SECCIÓN INFERIOR: Texto de Marca y Manifiesto */}
       <section className="max-w-7xl mx-auto py-24 px-6 text-left">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           
-          <div className="space-y-6">
-            <h2 className="text-[#7A1F1F] text-xs font-black uppercase tracking-[0.3em]">Nuestra Esencia</h2>
-            <p className="text-4xl font-serif text-slate-900 max-w-2xl leading-tight">
+          <div className="space-y-8">
+            <h2 className="text-gray-500 text-sm font-medium uppercase tracking-[0.2em]">Nuestra Esencia</h2>
+            <p className="text-3xl md:text-4xl font-semibold text-gray-900 max-w-2xl leading-tight tracking-tight">
               Diseño consciente para momentos inolvidables.
             </p>
-            <p className="text-gray-500 max-w-xl leading-relaxed">
-              En <b>EMI</b>, creemos que la moda debe ser una extensión de tu personalidad. Cada una de nuestras piezas es seleccionada y confeccionada pensando en la versatilidad y el impacto visual.
+            <p className="text-gray-600 text-lg max-w-xl leading-relaxed font-light">
+              En EMI, creemos que la moda debe ser una extensión de tu personalidad. Cada una de nuestras piezas es seleccionada y confeccionada pensando en la versatilidad y el impacto visual.
             </p>
             <Link 
               to="/nosotros" 
-              className="inline-block text-[11px] font-black uppercase tracking-widest border-b-2 border-black pb-1 hover:text-[#7A1F1F] hover:border-[#7A1F1F] transition-colors"
+              className="inline-block text-sm font-medium uppercase tracking-widest text-gray-900 border-b border-gray-900 pb-1 hover:text-gray-500 hover:border-gray-500 transition-colors"
             >
-              Conoce nuestra historia →
+              Conoce nuestra historia
             </Link>
           </div>
           
-          {/* LADO DERECHO: Grid de dos fotos que antes fallaban */}
-          <div className="grid grid-cols-2 gap-4">
-            
-            {/* Foto 1 (La de la izquierda, que salía blanca) */}
-            <div className="aspect-3/4 rounded-2xl overflow-hidden shadow-lg translate-y-8 bg-gray-50">
+          {/* LADO DERECHO: Grid de dos fotos */}
+          <div className="grid grid-cols-2 gap-4 md:gap-8">
+            <div className="aspect-[3/4] overflow-hidden translate-y-12 bg-gray-50">
               <img 
-                // Usamos un enlace más robusto para que no vuelva a fallar
-                src="https://images.pexels.com/photos/1036622/pexels-photo-1036622.jpeg?auto=compress&cs=tinysrgb&w=800" // <--- Foto 2 (Izquierda)
-                className="w-full h-full object-cover" 
+                src="https://images.pexels.com/photos/1036622/pexels-photo-1036622.jpeg?auto=compress&cs=tinysrgb&w=800"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
                 alt="Detalle de diseño conscious" 
               />
             </div>
             
-            {/* Foto 2 (La de la derecha, que salía blanca) */}
-            <div className="aspect-3/4 rounded-2xl overflow-hidden shadow-lg bg-gray-50">
+            <div className="aspect-[3/4] overflow-hidden bg-gray-50">
               <img 
-                // Usamos otro enlace seguro para esta foto
-                src="https://images.pexels.com/photos/1036627/pexels-photo-1036627.jpeg?auto=compress&cs=tinysrgb&w=800" // <--- Foto 3 (Derecha)
-                className="w-full h-full object-cover" 
+                src="https://images.pexels.com/photos/1036627/pexels-photo-1036627.jpeg?auto=compress&cs=tinysrgb&w=800"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
                 alt="Versatilidad en cada prenda" 
               />
             </div>

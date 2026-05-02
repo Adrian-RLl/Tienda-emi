@@ -24,38 +24,40 @@ export default function Productos() {
   if (loading) return null;
 
   return (
-    // max-w-7xl: El ancho máximo para contener las 4 columnas cómodamente
-    <div className="bg-white min-h-screen py-12 px-6">
+    <div className="bg-white min-h-screen py-16 px-6">
       <div className="max-w-7xl mx-auto">
         
-        <h1 className="text-4xl font-serif text-[#2D2D2D] mb-8 text-center tracking-tight">
-          Nuestro Catálogo
-        </h1>
-        
-        {/* Barra de búsqueda compacta */}
-        <div className="mb-14 flex justify-center">
-          <input
-            type="text"
-            placeholder="Buscar por nombre..."
-            className="w-full max-w-sm p-3.5 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#7A1F1F]/20 outline-none shadow-sm text-sm"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
+        <div className="flex flex-col items-center mb-16">
+          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-8 tracking-tight">
+            Nuestra Colección
+          </h1>
+          
+          <div className="w-full max-w-md relative">
+            <input
+              type="text"
+              placeholder="Buscar modelo..."
+              className="w-full p-4 pl-12 bg-gray-50 border-none rounded-none focus:ring-1 focus:ring-gray-900 outline-none transition-all text-sm font-medium"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+            <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
 
-        {/* LÓGICA DEL GRID 
-            grid-cols-2: 2 columnas en celulares.
-            md:grid-cols-3: 3 columnas en tablets.
-            lg:grid-cols-4: <--- EL CAMBIO: 4 COLUMNAS EN PC (Desktop).
-            gap-6: Espaciado equilibrado para 4 columnas.
-        */}
         {productos.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 italic">No hay piezas en la colección actual.</div>
+          <div className="text-center py-20 text-gray-400 font-medium">No hay piezas disponibles actualmente.</div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {productos.map((item) => (
-              <ProductCard key={item.id} producto={item} />
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+            {productos.map((item) => {
+              const totalTallas = (item.stock_s || 0) + (item.stock_m || 0) + (item.stock_l || 0);
+              const productoSincronizado = { ...item, stock: totalTallas };
+
+              return (
+                <ProductCard key={item.id} producto={productoSincronizado} />
+              );
+            })}
           </div>
         )}
       </div>

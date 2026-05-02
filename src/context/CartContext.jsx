@@ -5,23 +5,21 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [carrito, setCarrito] = useState([]);
 
-  /**
-   * FUNCIÓN: agregarAlCarrito
-   * Ahora valida que no agregues más de lo que hay en stock.
-   */
   const agregarAlCarrito = (producto) => {
-    // 1. Bloqueo total si el producto de la BD ya viene con stock 0
-    if (producto.stock <= 0) {
-      alert("Lo sentimos, este producto se acaba de agotar.");
+    // 1. Obtenemos el stock real de la talla seleccionada
+    const stockDeTalla = producto[`stock_${producto.talla.toLowerCase()}`] || 0;
+
+    if (stockDeTalla <= 0) {
+      alert("Lo sentimos, este producto se acaba de agotar en la talla seleccionada.");
       return;
     }
 
     const existe = carrito.find(item => item.id === producto.id && item.talla === producto.talla);
 
     if (existe) {
-      // 2. Validamos si al sumar 1 excedemos el stock disponible
-      if (existe.cantidad >= producto.stock) {
-        alert(`Solo quedan ${producto.stock} unidades disponibles de este vestido.`);
+      // 2. Validamos si al sumar 1 excedemos el stock disponible de esa talla
+      if (existe.cantidad >= stockDeTalla) {
+        alert(`Solo quedan ${stockDeTalla} unidades disponibles de esta talla.`);
         return;
       }
 
@@ -35,16 +33,13 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  /**
-   * FUNCIÓN: aumentarCantidad
-   * Compara la cantidad actual en el carrito con el stock máximo.
-   */
   const aumentarCantidad = (id, talla) => {
     setCarrito(carrito.map(item => {
       if (item.id === id && item.talla === talla) {
-        // Validamos el límite del stock antes de aumentar
-        if (item.cantidad >= item.stock) {
-          alert("Has alcanzado el límite de stock disponible.");
+        const stockDeTalla = item[`stock_${item.talla.toLowerCase()}`] || 0;
+        
+        if (item.cantidad >= stockDeTalla) {
+          alert("Has alcanzado el límite de stock disponible para esta talla.");
           return item; 
         }
         return { ...item, cantidad: item.cantidad + 1 };
@@ -65,13 +60,18 @@ export const CartProvider = ({ children }) => {
     setCarrito(carrito.filter(item => !(item.id === id && item.talla === talla)));
   };
 
+  const vaciarCarrito = () => {
+    setCarrito([]);
+  };
+
   return (
     <CartContext.Provider value={{ 
       carrito, 
       agregarAlCarrito, 
       aumentarCantidad, 
       disminuirCantidad, 
-      eliminarDelCarrito 
+      eliminarDelCarrito,
+      vaciarCarrito
     }}>
       {children}
     </CartContext.Provider>

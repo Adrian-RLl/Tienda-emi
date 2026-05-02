@@ -9,24 +9,23 @@ export default function Navbar() {
 
   const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
-  // Función para saber si un link está activo
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
     { name: 'Inicio', path: '/' },
     { name: 'Productos', path: '/productos' },
-    { name: 'Nosotros', path: '/nosotros' }, // Nueva sección
+    { name: 'Nosotros', path: '/nosotros' },
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="flex justify-between items-center h-20">
           
-          {/* LOGO: Más elegante y espaciado */}
+          {/* LOGO */}
           <Link 
             to="/" 
-            className="text-3xl font-serif font-bold tracking-[0.15em] text-[#2D2D2D] hover:opacity-70 transition-opacity"
+            className="text-2xl font-semibold tracking-wider text-gray-900 hover:text-gray-600 transition-colors"
           >
             EMI
           </Link>
@@ -38,8 +37,10 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 hover:text-[#7A1F1F] ${
-                    isActive(link.path) ? 'text-[#7A1F1F] border-b-2 border-[#7A1F1F] pb-1' : 'text-gray-400'
+                  className={`text-sm font-medium transition-colors duration-300 ${
+                    isActive(link.path) 
+                      ? 'text-gray-900' 
+                      : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
                   {link.name}
@@ -47,22 +48,22 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* CARRITO: Diseño tipo cápsula */}
+            {/* CARRITO */}
             <Link 
               to="/carrito" 
-              className="group relative flex items-center gap-2 bg-[#F9F9F9] hover:bg-[#7A1F1F] px-5 py-2.5 rounded-full transition-all duration-500 border border-gray-100"
+              className="group relative flex items-center gap-2 text-gray-900 hover:text-gray-600 transition-colors"
             >
               <svg 
-                className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" 
+                className="w-5 h-5" 
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <span className="text-[11px] font-black group-hover:text-white transition-colors uppercase tracking-widest">
-                Carrito
+              <span className="text-sm font-medium">
+                Bolsa
               </span>
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#7A1F1F] group-hover:bg-black text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
+                <span className="absolute -top-2 -right-3 bg-gray-900 text-white text-[10px] font-semibold h-4 w-4 rounded-full flex items-center justify-center">
                   {totalItems}
                 </span>
               )}
@@ -72,24 +73,24 @@ export default function Navbar() {
           {/* BOTÓN MÓVIL */}
           <button 
             onClick={() => setMenuAbierto(!menuAbierto)}
-            className="md:hidden text-gray-800 p-2"
+            className="md:hidden text-gray-900 p-2"
           >
-            <div className="w-6 h-0.5 bg-current mb-1.5 transition-all"></div>
-            <div className="w-6 h-0.5 bg-current mb-1.5 transition-all"></div>
-            <div className="w-4 h-0.5 bg-current transition-all"></div>
+            <div className={`w-6 h-0.5 bg-current mb-1.5 transition-all ${menuAbierto ? 'rotate-45 translate-y-2' : ''}`}></div>
+            <div className={`w-6 h-0.5 bg-current mb-1.5 transition-all ${menuAbierto ? 'opacity-0' : ''}`}></div>
+            <div className={`w-6 h-0.5 bg-current transition-all ${menuAbierto ? '-rotate-45 -translate-y-2' : ''}`}></div>
           </button>
         </div>
       </div>
 
       {/* MENÚ MÓVIL DESPLEGABLE */}
-      <div className={`md:hidden bg-white border-t border-gray-50 transition-all duration-500 overflow-hidden ${menuAbierto ? 'max-h-96' : 'max-h-0'}`}>
-        <div className="px-8 py-10 space-y-6">
+      <div className={`md:hidden bg-white border-t border-gray-100 transition-all duration-300 overflow-hidden ${menuAbierto ? 'max-h-96' : 'max-h-0'}`}>
+        <div className="px-6 py-8 space-y-6">
           {navLinks.map((link) => (
             <Link 
               key={link.name}
               to={link.path} 
               onClick={() => setMenuAbierto(false)}
-              className="block text-xl font-serif text-gray-800 border-b border-gray-50 pb-2"
+              className="block text-lg font-medium text-gray-900"
             >
               {link.name}
             </Link>
@@ -97,7 +98,7 @@ export default function Navbar() {
           <Link 
             to="/carrito" 
             onClick={() => setMenuAbierto(false)}
-            className="block text-xl font-serif text-[#7A1F1F]"
+            className="block text-lg font-medium text-gray-900"
           >
             Mi Bolsa ({totalItems})
           </Link>

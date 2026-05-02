@@ -1,130 +1,53 @@
 @import "tailwindcss";
 
-:root {
-  /* Paleta de colores ajustada para EMI (Fondo siempre blanco) */
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #ffffff; /* Fondo blanco puro */
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #7A1F1F; /* Rojo EMI */
-  --accent-bg: rgba(122, 31, 31, 0.1);
-  --accent-border: rgba(122, 31, 31, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: 'Playfair Display', serif; /* Ideal para moda */
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 16px/145% var(--sans);
-  letter-spacing: 0.18px;
-  /* Forzamos light para evitar que el navegador meta negros de modo oscuro */
-  color-scheme: light; 
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Inter', ui-sans-serif, system-ui, sans-serif; /* Override serif to avoid messy mix if left in classes */
 }
 
-/* Eliminamos el cambio a fondo oscuro para que la tienda sea siempre blanca y elegante */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #ffffff; 
-    --text: #6b6375;
-    --text-h: #08060d;
-    --border: #e5e4e7;
-  }
+:root {
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg); /* Evita las barras negras al minimizar */
+  background-color: #ffffff;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden; /* Evita scroll horizontal */
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #111827; /* neutral-900 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  /* CAMBIO CLAVE: Quitamos el width fijo de 1126px */
-  width: 100%; 
+  width: 100%;
   margin: 0 auto;
-  text-align: center;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: var(--bg);
 }
 
-/* Estilos de Títulos */
-h1 {
-  font-family: var(--heading);
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--text-h);
-  letter-spacing: -1.2px;
-  margin: 24px 0;
-}
-
-@media (max-width: 1024px) {
-  h1 {
-    font-size: 32px;
-    margin: 16px 0;
-  }
-}
-
-h2 {
-  font-family: var(--heading);
-  font-size: 24px;
-  line-height: 118%;
-  color: var(--text-h);
-  margin: 0 0 8px;
-}
-
-p {
-  margin: 0;
-}
-
-/* Utilidades para botones y contadores */
-code, .counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 14px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-/* Ajuste para que las imágenes de los productos no se rompan */
 img {
   max-width: 100%;
   height: auto;
   display: block;
 }
+
+/* Animaciones sutiles globales */
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fadeInScale { animation: fadeInScale 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-fadeInUp { animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; opacity: 0; }
-.animate-fadeInDown { animation: fadeInDown 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fadeInScale { animation: fadeInScale 0.8s ease-out forwards; }
+.animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+.animate-fadeIn { animation: fadeInScale 0.4s ease-out forwards; }

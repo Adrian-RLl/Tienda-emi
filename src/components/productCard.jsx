@@ -2,51 +2,35 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ProductCard({ producto }) {
   const navigate = useNavigate();
-  
-  // Validación de stock proveniente de la base de datos
   const hayStock = producto.stock > 0;
 
   return (
     <div 
-      // Permitimos que SIEMPRE sea clickeable para navegar
-      className="bg-white p-3 rounded-xl border border-gray-100 transition-all duration-300 group cursor-pointer hover:shadow-lg relative"
-      onClick={() => navigate(`/producto/${producto.id}`)} // <- ELIMINAMOS la validación de stock aquí
+      className="group cursor-pointer flex flex-col"
+      onClick={() => navigate(`/producto/${producto.id}`)}
     >
-      {/* Etiqueta de Agotado visual sobre la imagen */}
-      {!hayStock && (
-        <div className="absolute top-4 right-4 z-10">
-          <span className="bg-red-600 text-white px-3 py-1 rounded-full font-bold text-xs shadow-lg">
-            AGOTADO
-          </span>
-        </div>
-      )}
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
+        {!hayStock && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+              Agotado
+            </span>
+          </div>
+        )}
 
-      <div className="overflow-hidden rounded-lg aspect-3/4 relative">
         <img 
           src={producto.imagen_url} 
           alt={producto.nombre} 
-          // Si no hay stock, la imagen se ve más tenue
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${!hayStock ? 'opacity-70 grayscale-[0.5]' : ''}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!hayStock ? 'opacity-60' : ''}`}
         />
+        
+        {/* Hover overlay simple */}
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
-      <div className="mt-4 px-2">
-        <h2 className="text-[#2D2D2D] text-lg font-semibold">{producto.nombre}</h2>
-        <div className="flex justify-between items-center mt-1">
-          <p className="text-[#7A1F1F] font-bold text-xl">S/{producto.precio}</p>
-          <span className="text-xs text-gray-400">Stock: {producto.stock}</span>
-        </div>
-        
-        {/* Este botón es visual, la navegación real es en la tarjeta entera */}
-        <button 
-          className={`w-full mt-4 border py-2 rounded-lg transition-all font-bold ${
-            hayStock 
-              ? 'border-[#7A1F1F] text-[#7A1F1F] hover:bg-[#7A1F1F] hover:text-white' 
-              : 'border-gray-300 text-gray-400 bg-gray-50'
-          }`}
-        >
-          {hayStock ? 'Ver detalles' : 'Sin existencias'}
-        </button>
+      <div className="flex flex-col space-y-1">
+        <h2 className="text-gray-900 text-sm font-medium">{producto.nombre}</h2>
+        <p className="text-gray-500 text-sm">S/ {producto.precio.toFixed(2)}</p>
       </div>
     </div>
   );

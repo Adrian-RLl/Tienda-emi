@@ -5,48 +5,53 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       alert("Error de acceso: " + error.message);
+      setLoading(false);
     } else {
-      // Login exitoso, vamos al admin
       navigate('/admin');
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-[#FDFBF7] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4 selection:bg-zinc-800 animate-fadeIn">
       <form 
         onSubmit={handleLogin} 
-        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100"
+        className="bg-zinc-900 p-10 rounded-2xl w-full max-w-sm border border-zinc-800 shadow-2xl"
       >
-        <h2 className="text-3xl font-serif text-center mb-8 text-[#2D2D2D]">Acceso Administrador</h2>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold tracking-wider text-white mb-2">EMI</h1>
+          <p className="text-zinc-500 text-sm">Acceso Administrativo</p>
+        </div>
         
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correo</label>
+            <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Correo Electrónico</label>
             <input 
               type="email" 
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7A1F1F] outline-none"
-              placeholder="adm_aby@gmail.com"
+              className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg focus:border-zinc-500 outline-none transition-colors text-white text-sm"
+              placeholder="admin@emi.com"
               onChange={(e) => setEmail(e.target.value)}
               required 
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Contraseña</label>
             <input 
               type="password" 
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7A1F1F] outline-none"
+              className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg focus:border-zinc-500 outline-none transition-colors text-white text-sm"
               placeholder="••••••••"
               onChange={(e) => setPassword(e.target.value)}
               required 
@@ -55,9 +60,10 @@ export default function Login() {
 
           <button 
             type="submit"
-            className="w-full bg-[#7A1F1F] text-white py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg active:scale-95"
+            disabled={loading}
+            className="w-full bg-white text-zinc-900 py-3.5 mt-2 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
           >
-            Entrar al Panel
+            {loading ? 'Verificando...' : 'Entrar al Panel'}
           </button>
         </div>
       </form>

@@ -3,32 +3,26 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { supabase } from './supabaseClient';
 import { CartProvider } from './context/CartContext';
 
-
 // Importación de Componentes y Páginas
 import Navbar from './components/Navbar';
-import NavbarAdmin from './components/NavbarAdmin';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Productos from './pages/Productos';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
-import Inicio from './pages/Inicio'; // <--- Importante: Debe existir src/pages/Inicio.jsx
+import Inicio from './pages/Inicio';
 import Nosotros from './pages/Nosotros';
 
-
 /**
- * COMPONENTE: LayoutSelector
- * Decide qué Navbar mostrar según la URL actual.
+ * COMPONENTE: PublicLayout
+ * Envuelve las rutas de clientes con el Navbar blanco y carrito.
  */
-function LayoutSelector({ children }) {
-  const location = useLocation();
-  const isAdminPath = location.pathname.startsWith('/admin');
-
+function PublicLayout({ children }) {
   return (
-    <>
-      {isAdminPath ? <NavbarAdmin /> : <Navbar />}
+    <div className="min-h-screen bg-white">
+      <Navbar />
       {children}
-    </>
+    </div>
   );
 }
 
@@ -54,43 +48,37 @@ function ProtectedRoute({ children }) {
   }, []);
 
   if (loading) return null; 
-
   return session ? children : <Navigate to="/login" replace />;
 }
-
-// NOTA: Se eliminó la función Home() que estaba aquí para usar el archivo Inicio.jsx
 
 export default function App() {
   return (
     <CartProvider>
       <BrowserRouter>
-        {/* Usamos bg-white para que combine con el nuevo diseño Premium */}
-        <div className="min-h-screen bg-white">
-          <LayoutSelector>
-            <Routes>
-              {/* Rutas Públicas */}
-              <Route path="/" element={<Inicio />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/producto/:id" element={<ProductDetail />} />
-              <Route path="/carrito" element={<Cart />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/nosotros" element={<Nosotros />} />
+        <Routes>
+          {/* GRUPO 1: RUTAS PÚBLICAS (Diseño Blanco) */}
+          <Route path="/" element={<PublicLayout><Inicio /></PublicLayout>} />
+          <Route path="/productos" element={<PublicLayout><Productos /></PublicLayout>} />
+          <Route path="/producto/:id" element={<PublicLayout><ProductDetail /></PublicLayout>} />
+          <Route path="/carrito" element={<PublicLayout><Cart /></PublicLayout>} />
+          <Route path="/nosotros" element={<PublicLayout><Nosotros /></PublicLayout>} />
+          
+          {/* LOGIN: Sin Navbar para máxima limpieza */}
+          <Route path="/login" element={<Login />} />
 
-              {/* Ruta Protegida */}
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                } 
-              />
+          {/* GRUPO 2: RUTA ADMIN (Diseño Dark - Sin Navbar General) */}
+          <Route 
+            path="/admin/*" 
+            element={
+              <ProtectedRoute>
+                <Admin /> 
+              </ProtectedRoute>
+            } 
+          />
 
-              {/* Redirección por defecto */}
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </LayoutSelector>
-        </div>
+          {/* Redirección por defecto */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </BrowserRouter>
     </CartProvider>
   );

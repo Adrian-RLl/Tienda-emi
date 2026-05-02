@@ -1,122 +1,244 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 export default function Cart() {
-  // Extraemos tus funciones específicas del context
-  const { carrito, aumentarCantidad, disminuirCantidad, eliminarDelCarrito } = useContext(CartContext);
+  const { carrito, aumentarCantidad, disminuirCantidad, eliminarDelCarrito, vaciarCarrito } = useContext(CartContext);
+  const navigate = useNavigate();
 
-  // Cálculo del total
+  const [cliente, setCliente] = useState({ nombre: '', dni: '', telefono: '', direccion: '', referencia: '' });
+  const [procesando, setProcesando] = useState(false);
+
   const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
 
-  // Tu lógica de envío por WhatsApp mejorada con formato
-  const enviarPorWhatsApp = () => {
-    const resumen = carrito.map(item => 
-      `• ${item.nombre} (Talla: ${item.talla} | Cant: ${item.cantidad}) - S/${(item.precio * item.cantidad).toFixed(2)}`
-    ).join('\n');
-
-    const mensaje = `¡Hola EMI! ✨ Quiero realizar este pedido:\n\n${resumen}\n\n*Total a pagar: S/${total.toFixed(2)}*`;
+  const handleProcesarPedido = async (e) => {
+    e.preventDefault();
+    if (!cliente.nombre || !cliente.telefono || !cliente.dni) {
+      alert("Por favor, ingresa tu nombre, DNI y teléfono.");
+      return;
+    }
     
-    const numeroWhatsApp = "51975038989"; 
-    window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    setProcesando(true);
+
+    try {
+      // 1. Crear la Orden (Pendiente)
+      const { data: orden, error: errorOrden } = await supabase
+        .from('orders')
+        .insert([{
+          nombre_cliente: cliente.nombre,
+          dni_cliente: cliente.dni,
+          telefono_cliente: cliente.telefono,
+          direccion_cliente: cliente.direccion,
+          referencia_cliente: cliente.referencia,
+          total: total,
+          estado: 'Pendiente'
+        }])
+        .select()
+        .single();
+
+      if (errorOrden) throw errorOrden;
+
+      // 2. Crear los Ítems de la Orden
+      const itemsParaInsertar = carrito.map(item => ({
+        order_id: orden.id,
+        producto_id: item.id,
+        nombre_producto: item.nombre,
+        talla: item.talla,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio
+      }));
+
+      const { error: errorItems } = await supabase.from('order_items').insert(itemsParaInsertar);
+      if (errorItems) throw errorItems;
+
+      // 3. Generar mensaje de WhatsApp
+      const resumen = carrito.map(item => 
+        `• ${item.nombre} (Talla: ${item.talla} | Cant: ${item.cantidad}) - S/${(item.precio * item.cantidad).toFixed(2)}`
+      ).join('\n');
+
+      const idCorto = orden.id.split('-')[0].toUpperCase();
+      const refTexto = cliente.referencia ? ` (Ref: ${cliente.referencia})` : '';
+      const dirTexto = cliente.direccion ? `${cliente.direccion}${refTexto}` : 'Recojo en tienda';
+
+      const mensaje = `¡Hola EMI! ✨ Acabo de registrar el pedido *#${idCorto}* en su web.\n\n` +
+                      `*Cliente:* ${cliente.nombre}\n` +
+                      `*DNI:* ${cliente.dni}\n` +
+                      `*Envío a:* ${dirTexto}\n\n` +
+                      `${resumen}\n\n*Total a pagar: S/${total.toFixed(2)}*\n\n` +
+                      `Espero la confirmación para realizar el pago.`;
+      
+      const numeroWhatsApp = "51975038989"; 
+      window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+      // 4. Limpiar y redirigir
+      vaciarCarrito();
+      navigate('/productos');
+      
+    } catch (error) {
+      console.error("Error al procesar el pedido:", error);
+      alert(`Error de base de datos: ${error.message || JSON.stringify(error)}. \n\n¿Ejecutaste el script SQL para crear/actualizar la tabla?`);
+    } finally {
+      setProcesando(false);
+    }
   };
 
   if (carrito.length === 0) {
     return (
       <div className="bg-white min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-6 text-center">
-        <h2 className="text-3xl font-serif mb-4">Tu bolsa está vacía</h2>
-        <Link to="/productos" className="text-[#7A1F1F] font-bold border-b-2 border-[#7A1F1F] pb-1 hover:text-black hover:border-black transition-all">
-          DESCUBRIR LA COLECCIÓN
+        <h2 className="text-2xl font-medium text-gray-900 mb-6">Tu bolsa está vacía</h2>
+        <Link to="/productos" className="text-sm font-medium uppercase tracking-widest text-gray-900 border-b border-gray-900 pb-1 hover:text-gray-500 hover:border-gray-500 transition-colors">
+          Continuar Comprando
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen py-12 px-6">
+    <div className="bg-white min-h-screen py-16 px-6 animate-fadeIn">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-serif font-bold mb-10 text-slate-900 border-b border-gray-100 pb-6">Tu Bolsa de Compras</h1>
+        <h1 className="text-3xl font-semibold mb-12 text-gray-900 border-b border-gray-100 pb-6">Tu Bolsa</h1>
         
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-16">
           
-          {/* COLUMNA IZQUIERDA: LISTA DE PRODUCTOS */}
-          <div className="lg:w-2/3 space-y-8">
-            {carrito.map((item, index) => (
-              <div key={`${item.id}-${item.talla}-${index}`} className="flex gap-6 border-b border-gray-50 pb-8 group">
-                {/* Imagen del producto (usando la URL de tu base de datos) */}
-                <div className="w-24 h-32 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
-                  <img src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
-                </div>
+          {/* LISTA DE PRODUCTOS */}
+          <div className="lg:w-[55%] space-y-10">
+            {carrito.map((item, index) => {
+              const limiteStock = item[`stock_${item.talla.toLowerCase()}`] || 0;
+              const alcanzoLimite = item.cantidad >= limiteStock;
 
-                <div className="flex-grow flex flex-col justify-between py-1">
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">{item.nombre}</h3>
-                      <button 
-                        onClick={() => eliminarDelCarrito(item.id, item.talla)}
-                        className="text-gray-300 hover:text-red-500 transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1 uppercase font-medium">Talla: {item.talla}</p>
-                    <p className="text-sm font-serif font-bold text-[#7A1F1F] mt-2">S/ {(item.precio * item.cantidad).toFixed(2)}</p>
+              return (
+                <div key={`${item.id}-${item.talla}-${index}`} className="flex gap-6 border-b border-gray-50 pb-8">
+                  <div className="w-28 h-36 bg-gray-50 overflow-hidden flex-shrink-0">
+                    <img src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
                   </div>
 
-                  {/* CONTROLES DE CANTIDAD (Tus funciones) */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-gray-100 rounded-lg bg-gray-50/50">
-                      <button 
-                        onClick={() => disminuirCantidad(item.id, item.talla)}
-                        className="px-3 py-1 text-gray-500 hover:text-black font-bold"
-                      >
-                        −
-                      </button>
-                      <span className="text-xs font-bold w-4 text-center">{item.cantidad}</span>
-                      <button 
-                        onClick={() => aumentarCantidad(item.id, item.talla)}
-                        className="px-3 py-1 text-gray-500 hover:text-black font-bold"
-                      >
-                        +
-                      </button>
+                  <div className="flex-grow flex flex-col justify-between py-1">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-base font-medium text-gray-900">{item.nombre}</h3>
+                        <button 
+                          onClick={() => eliminarDelCarrito(item.id, item.talla)}
+                          className="text-gray-400 hover:text-gray-900 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">Talla: {item.talla}</p>
+                      <p className="text-base font-medium text-gray-900 mt-2">S/ {item.precio.toFixed(2)}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center border border-gray-200">
+                        <button 
+                          onClick={() => disminuirCantidad(item.id, item.talla)}
+                          className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors"
+                        >
+                          −
+                        </button>
+                        <span className="text-sm font-medium w-8 text-center">{item.cantidad}</span>
+                        <button 
+                          disabled={alcanzoLimite}
+                          onClick={() => aumentarCantidad(item.id, item.talla)}
+                          className={`w-10 h-10 flex items-center justify-center transition-colors ${alcanzoLimite ? 'text-gray-200 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                      {alcanzoLimite && <span className="text-xs text-red-500 font-medium">Límite de stock</span>}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* COLUMNA DERECHA: RESUMEN FIJO */}
-          <div className="lg:w-1/3">
-            <div className="bg-[#FBFBFB] rounded-3xl p-8 sticky top-28 border border-gray-100">
-              <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-6 text-slate-400">Resumen de pedido</h2>
+          {/* CHECKOUT FORM */}
+          <div className="lg:w-[45%]">
+            <div className="bg-gray-50 p-8 sticky top-28 rounded-xl border border-gray-100">
+              <h2 className="text-lg font-medium text-gray-900 mb-6">Detalles de Envío</h2>
               
-              <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-bold text-slate-800">S/ {total.toFixed(2)}</span>
+              <form onSubmit={handleProcesarPedido} className="space-y-4 mb-8">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Nombre Completo *</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={cliente.nombre}
+                    onChange={(e) => setCliente({...cliente, nombre: e.target.value})}
+                    className="w-full bg-white border border-gray-200 px-4 py-3 outline-none focus:border-gray-900 transition-colors text-sm"
+                  />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Envío</span>
-                  <span className="text-green-600 font-bold uppercase text-[10px] tracking-widest">Gratis</span>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">DNI / CE *</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={cliente.dni}
+                      onChange={(e) => setCliente({...cliente, dni: e.target.value})}
+                      className="w-full bg-white border border-gray-200 px-4 py-3 outline-none focus:border-gray-900 transition-colors text-sm"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">WhatsApp / Teléfono *</label>
+                    <input 
+                      required
+                      type="tel" 
+                      value={cliente.telefono}
+                      onChange={(e) => setCliente({...cliente, telefono: e.target.value})}
+                      className="w-full bg-white border border-gray-200 px-4 py-3 outline-none focus:border-gray-900 transition-colors text-sm"
+                    />
+                  </div>
                 </div>
-                <div className="pt-4 border-t border-gray-200 flex justify-between">
-                  <span className="text-sm font-black uppercase">Total</span>
-                  <span className="text-xl font-serif font-bold text-[#7A1F1F]">S/ {total.toFixed(2)}</span>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Dirección de Envío (Opcional)</label>
+                  <input 
+                    type="text" 
+                    value={cliente.direccion}
+                    onChange={(e) => setCliente({...cliente, direccion: e.target.value})}
+                    placeholder="Ej. Av. Principal 123, Distrito"
+                    className="w-full bg-white border border-gray-200 px-4 py-3 outline-none focus:border-gray-900 transition-colors text-sm"
+                  />
                 </div>
-              </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Referencia (Opcional)</label>
+                  <input 
+                    type="text" 
+                    value={cliente.referencia}
+                    onChange={(e) => setCliente({...cliente, referencia: e.target.value})}
+                    placeholder="Ej. Al frente del parque, puerta verde"
+                    className="w-full bg-white border border-gray-200 px-4 py-3 outline-none focus:border-gray-900 transition-colors text-sm"
+                  />
+                </div>
 
-              {/* TU BOTÓN DE WHATSAPP INTEGRADO AL DISEÑO */}
-              <button 
-                onClick={enviarPorWhatsApp}
-                className="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-black transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3"
-              >
-                Finalizar compra por WhatsApp
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.67-1.611-.916-2.206-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-              </button>
+                <div className="pt-8 mb-4">
+                  <div className="flex justify-between text-sm mb-4">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium text-gray-900">S/ {total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-4">
+                    <span className="text-gray-600">Envío</span>
+                    <span className="text-gray-900 text-xs text-right">Se coordinará por WhatsApp</span>
+                  </div>
+                  <div className="pt-6 border-t border-gray-200 flex justify-between items-end">
+                    <span className="text-base font-medium text-gray-900">Total a Pagar</span>
+                    <span className="text-2xl font-semibold text-gray-900">S/ {total.toFixed(2)}</span>
+                  </div>
+                </div>
 
-              <Link to="/productos" className="block text-center mt-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-black transition-colors">
-                ← Continuar comprando
+                <button 
+                  type="submit"
+                  disabled={procesando}
+                  className="w-full bg-gray-900 text-white py-4 text-sm font-medium uppercase tracking-wider hover:bg-black transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {procesando ? 'Procesando...' : 'Confirmar Pedido'}
+                  {!procesando && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
+                </button>
+              </form>
+
+              <Link to="/productos" className="block text-center text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                ← Volver al catálogo
               </Link>
             </div>
           </div>

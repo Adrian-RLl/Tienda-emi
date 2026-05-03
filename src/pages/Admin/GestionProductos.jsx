@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient'; 
 
 export default function GestionProductos({ productoEditando, setProductoEditando }) {
-  const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '' });
+  const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '', precio_oferta: '' });
   const [loading, setLoading] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -13,11 +13,12 @@ export default function GestionProductos({ productoEditando, setProductoEditando
         nombre: productoEditando.nombre,
         descripcion: productoEditando.descripcion,
         precio: productoEditando.precio.toString(),
+        precio_oferta: productoEditando.precio_oferta ? productoEditando.precio_oferta.toString() : '',
       });
       setImageUrls(productoEditando.imagenes_galeria || [productoEditando.imagen_url]);
       setCurrentIndex(0);
     } else {
-      setForm({ nombre: '', descripcion: '', precio: '' });
+      setForm({ nombre: '', descripcion: '', precio: '', precio_oferta: '' });
       setImageUrls([]);
       setCurrentIndex(0);
     }
@@ -70,7 +71,8 @@ export default function GestionProductos({ productoEditando, setProductoEditando
     const productData = {
       nombre: form.nombre, 
       descripcion: form.descripcion, 
-      precio: parseFloat(form.precio), 
+      precio: parseFloat(form.precio),
+      precio_oferta: form.precio_oferta ? parseFloat(form.precio_oferta) : null,
       imagen_url: imageUrls[0], 
       imagenes_galeria: imageUrls, 
     };
@@ -88,7 +90,7 @@ export default function GestionProductos({ productoEditando, setProductoEditando
       ]);
 
       if (!error) {
-        setForm({ nombre: '', descripcion: '', precio: '' });
+        setForm({ nombre: '', descripcion: '', precio: '', precio_oferta: '' });
         setImageUrls([]);
         setCurrentIndex(0);
       } else {
@@ -192,14 +194,27 @@ export default function GestionProductos({ productoEditando, setProductoEditando
         {/* PANEL LATERAL */}
         <div className="space-y-6">
           <section className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm">
-            <h3 className="text-sm font-medium text-zinc-400 mb-4">Precio</h3>
-            <div className="relative">
+            <h3 className="text-sm font-medium text-zinc-400 mb-4">Precio Regular</h3>
+            <div className="relative mb-4">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-medium">S/</span>
               <input 
                 type="number" 
                 value={form.precio}
                 onChange={(e) => setForm({...form, precio: e.target.value})}
                 className="w-full bg-zinc-950 border border-zinc-800 pl-10 pr-4 py-3 rounded-xl outline-none focus:border-zinc-500 transition-colors text-white text-lg font-medium" 
+              />
+            </div>
+            
+            <h3 className="text-sm font-medium text-amber-500 mb-2">Precio de Oferta (Opcional)</h3>
+            <p className="text-xs text-zinc-500 mb-3">Si colocas un precio aquí, el precio original aparecerá tachado.</p>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500/50 font-medium">S/</span>
+              <input 
+                type="number" 
+                value={form.precio_oferta}
+                placeholder="Ej. 80.00"
+                onChange={(e) => setForm({...form, precio_oferta: e.target.value})}
+                className="w-full bg-zinc-950 border border-amber-500/20 pl-10 pr-4 py-3 rounded-xl outline-none focus:border-amber-500 transition-colors text-white text-lg font-medium placeholder-zinc-700" 
               />
             </div>
           </section>

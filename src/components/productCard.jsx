@@ -2,7 +2,16 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ProductCard({ producto }) {
   const navigate = useNavigate();
-  const hayStock = producto.stock > 0;
+  // Compute stock across sizes
+  const stockS = producto.stock_s || 0;
+  const stockM = producto.stock_m || 0;
+  const stockL = producto.stock_l || 0;
+  const hayStock = (stockS + stockM + stockL) > 0;
+  
+  const isOferta = producto.precio_oferta && producto.precio_oferta < producto.precio;
+  const porcentaje = isOferta 
+    ? Math.round(((producto.precio - producto.precio_oferta) / producto.precio) * 100) 
+    : 0;
 
   return (
     <div 
@@ -10,13 +19,19 @@ export default function ProductCard({ producto }) {
       onClick={() => navigate(`/producto/${producto.id}`)}
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
-        {!hayStock && (
-          <div className="absolute top-3 left-3 z-10">
+        {/* Etiquetas superpuestas */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+          {!hayStock && (
             <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
               Agotado
             </span>
-          </div>
-        )}
+          )}
+          {isOferta && (
+            <span className="bg-red-600/90 backdrop-blur-sm text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+              -{porcentaje}% OFERTA
+            </span>
+          )}
+        </div>
 
         <img 
           src={producto.imagen_url} 
@@ -29,8 +44,17 @@ export default function ProductCard({ producto }) {
       </div>
 
       <div className="flex flex-col space-y-1">
-        <h2 className="text-gray-900 text-sm font-medium">{producto.nombre}</h2>
-        <p className="text-gray-500 text-sm">S/ {producto.precio.toFixed(2)}</p>
+        <h2 className="text-gray-900 text-sm font-medium line-clamp-1">{producto.nombre}</h2>
+        <div className="flex items-center gap-2">
+          {isOferta ? (
+            <>
+              <span className="text-red-600 font-semibold text-sm">S/ {producto.precio_oferta.toFixed(2)}</span>
+              <span className="text-gray-400 line-through text-xs">S/ {producto.precio.toFixed(2)}</span>
+            </>
+          ) : (
+            <span className="text-gray-500 text-sm">S/ {producto.precio.toFixed(2)}</span>
+          )}
+        </div>
       </div>
     </div>
   );

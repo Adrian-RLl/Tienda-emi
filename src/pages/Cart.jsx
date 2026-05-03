@@ -10,7 +10,7 @@ export default function Cart() {
   const [cliente, setCliente] = useState({ nombre: '', dni: '', telefono: '', direccion: '', referencia: '' });
   const [procesando, setProcesando] = useState(false);
 
-  const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+  const total = carrito.reduce((sum, item) => sum + ((item.precio_oferta || item.precio) * item.cantidad), 0);
 
   const handleProcesarPedido = async (e) => {
     e.preventDefault();
@@ -46,16 +46,17 @@ export default function Cart() {
         nombre_producto: item.nombre,
         talla: item.talla,
         cantidad: item.cantidad,
-        precio_unitario: item.precio
+        precio_unitario: item.precio_oferta || item.precio
       }));
 
       const { error: errorItems } = await supabase.from('order_items').insert(itemsParaInsertar);
       if (errorItems) throw errorItems;
 
       // 3. Generar mensaje de WhatsApp
-      const resumen = carrito.map(item => 
-        `• ${item.nombre} (Talla: ${item.talla} | Cant: ${item.cantidad}) - S/${(item.precio * item.cantidad).toFixed(2)}`
-      ).join('\n');
+      const resumen = carrito.map(item => {
+        const precioUnitario = item.precio_oferta || item.precio;
+        return `• ${item.nombre} (Talla: ${item.talla} | Cant: ${item.cantidad}) - S/${(precioUnitario * item.cantidad).toFixed(2)}`;
+      }).join('\n');
 
       const idCorto = orden.id.split('-')[0].toUpperCase();
       const refTexto = cliente.referencia ? ` (Ref: ${cliente.referencia})` : '';
@@ -125,7 +126,16 @@ export default function Cart() {
                         </button>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">Talla: {item.talla}</p>
-                      <p className="text-base font-medium text-gray-900 mt-2">S/ {item.precio.toFixed(2)}</p>
+                      <div className="mt-2">
+                        {item.precio_oferta && item.precio_oferta < item.precio ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-bold text-red-600">S/ {item.precio_oferta.toFixed(2)}</span>
+                            <span className="text-sm text-gray-400 line-through">S/ {item.precio.toFixed(2)}</span>
+                          </div>
+                        ) : (
+                          <p className="text-base font-medium text-gray-900">S/ {item.precio.toFixed(2)}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between mt-4">

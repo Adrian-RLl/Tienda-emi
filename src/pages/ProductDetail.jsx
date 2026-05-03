@@ -35,6 +35,10 @@ export default function ProductDetail() {
 
   const stockTotal = (producto.stock_s || 0) + (producto.stock_m || 0) + (producto.stock_l || 0);
   const estaAgotado = stockTotal <= 0;
+  const isOferta = producto.precio_oferta && producto.precio_oferta < producto.precio;
+  const porcentaje = isOferta 
+    ? Math.round(((producto.precio - producto.precio_oferta) / producto.precio) * 100) 
+    : 0;
 
   return (
     <div className="bg-white min-h-screen flex items-center justify-center py-12 px-4 md:px-10">
@@ -55,6 +59,12 @@ export default function ProductDetail() {
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </Link>
+
+            {isOferta && (
+              <div className="absolute top-6 right-6 bg-red-600 text-white px-4 py-1.5 text-sm font-bold tracking-widest z-10 rounded-full shadow-lg">
+                -{porcentaje}% OFERTA
+              </div>
+            )}
 
             {/* Flechas de Navegación */}
             {galeria.length > 1 && (
@@ -101,7 +111,16 @@ export default function ProductDetail() {
             <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight">
               {producto.nombre}
             </h1>
-            <p className="text-xl font-medium text-gray-600">S/ {producto.precio.toFixed(2)}</p>
+            <div className="flex items-center gap-4">
+              {isOferta ? (
+                <>
+                  <p className="text-2xl font-bold text-red-600">S/ {producto.precio_oferta.toFixed(2)}</p>
+                  <p className="text-lg font-medium text-gray-400 line-through">S/ {producto.precio.toFixed(2)}</p>
+                </>
+              ) : (
+                <p className="text-xl font-medium text-gray-600">S/ {producto.precio.toFixed(2)}</p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">

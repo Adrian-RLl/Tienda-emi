@@ -16,7 +16,7 @@ export default function Ventas() {
         order_items (*)
       `)
       .order('created_at', { ascending: false });
-      
+
     if (!error && data) {
       setPedidos(data);
     }
@@ -30,18 +30,18 @@ export default function Ventas() {
   const generarComprobante = (pedido) => {
     try {
       const doc = new jsPDF();
-      const centro = 105; 
-      
+      const centro = 105;
+
       // Header (Centrado)
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
       doc.text("MODAS EMI", centro, 25, null, null, "center");
-      
+
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text("RUC: 20123456789", centro, 32, null, null, "center");
-      doc.text("Av. Principal 123, Lima, Perú", centro, 38, null, null, "center");
-      
+      //doc.text("RUC: 20123456789", centro, 32, null, null, "center");
+      doc.text("La Tinguiña, Ica, Perú", centro, 38, null, null, "center");
+
       // Separador
       doc.setDrawColor(200);
       doc.line(14, 45, 196, 45);
@@ -50,18 +50,18 @@ export default function Ventas() {
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("COMPROBANTE DE PAGO", centro, 55, null, null, "center");
-      
+
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       const idCorto = pedido.id.split('-')[0].toUpperCase();
       doc.text(`N° Orden: #${idCorto}  |  Fecha: ${formatearFecha(pedido.created_at)}`, centro, 62, null, null, "center");
-      
+
       // Datos del Cliente (Alineado a la izquierda)
       doc.setFont("helvetica", "bold");
       doc.text("Facturado a:", 14, 75);
       doc.setFont("helvetica", "normal");
       doc.text(`Nombre: ${pedido.nombre_cliente}`, 14, 82);
-      
+
       let nextY = 88;
       if (pedido.dni_cliente) {
         doc.text(`DNI / CE: ${pedido.dni_cliente}`, 14, nextY);
@@ -78,7 +78,7 @@ export default function Ventas() {
         doc.text(`Referencia: ${pedido.referencia_cliente}`, 14, nextY);
         nextY += 6;
       }
-      
+
       // Tabla de Items
       const tableColumn = ["Cant", "Descripción", "Talla", "P. Unit", "Subtotal"];
       const tableRows = [];
@@ -118,12 +118,12 @@ export default function Ventas() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.text(`TOTAL PAGADO: S/ ${pedido.total.toFixed(2)}`, 196, finalY + 15, null, null, "right");
-      
+
       // Footer
       doc.setFontSize(9);
       doc.setFont("helvetica", "italic");
       doc.text("¡Gracias por confiar en Modas EMI! ✨", centro, 280, null, null, "center");
-      
+
       doc.save(`Comprobante_EMI_${idCorto}.pdf`);
     } catch (err) {
       console.error("Error generando PDF:", err);
@@ -137,11 +137,11 @@ export default function Ventas() {
       if (pedido && pedido.estado !== 'Pagado') {
         for (const item of pedido.order_items) {
           const { data: producto } = await supabase.from('products').select(`stock_${item.talla.toLowerCase()}`).eq('id', item.producto_id).single();
-          
+
           if (producto) {
             const stockAnterior = producto[`stock_${item.talla.toLowerCase()}`] || 0;
             const nuevoStock = Math.max(0, stockAnterior - item.cantidad);
-            
+
             await supabase.from('products').update({
               [`stock_${item.talla.toLowerCase()}`]: nuevoStock
             }).eq('id', item.producto_id);
@@ -175,8 +175,8 @@ export default function Ventas() {
   const pedidosFiltrados = pedidos.filter(pedido => {
     const idCorto = pedido.id.split('-')[0].toUpperCase();
     const termino = busqueda.toLowerCase();
-    return idCorto.toLowerCase().includes(termino) || 
-           pedido.nombre_cliente.toLowerCase().includes(termino);
+    return idCorto.toLowerCase().includes(termino) ||
+      pedido.nombre_cliente.toLowerCase().includes(termino);
   });
 
   if (loading) {
@@ -192,12 +192,12 @@ export default function Ventas() {
         </div>
         <div className="bg-zinc-900 px-4 py-2.5 rounded-lg border border-zinc-800 w-full md:w-auto flex items-center gap-3">
           <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input 
-            type="text" 
-            placeholder="Buscar por código o cliente..." 
+          <input
+            type="text"
+            placeholder="Buscar por código o cliente..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="bg-transparent outline-none text-sm text-zinc-300 w-full md:w-64" 
+            className="bg-transparent outline-none text-sm text-zinc-300 w-full md:w-64"
           />
         </div>
       </header>
@@ -216,27 +216,26 @@ export default function Ventas() {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-sm font-medium text-white">Orden #{pedido.id.split('-')[0].toUpperCase()}</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                      pedido.estado === 'Pendiente' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${pedido.estado === 'Pendiente' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                       pedido.estado === 'Pagado' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                      'bg-red-500/10 text-red-500 border-red-500/20'
-                    }`}>
+                        'bg-red-500/10 text-red-500 border-red-500/20'
+                      }`}>
                       {pedido.estado}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500">{formatearFecha(pedido.created_at)}</p>
                 </div>
-                
+
                 <div className="flex gap-2 w-full md:w-auto">
                   {pedido.estado === 'Pendiente' && (
                     <>
-                      <button 
+                      <button
                         onClick={() => actualizarEstado(pedido.id, 'Pagado')}
                         className="flex-1 md:flex-none px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-xs font-medium rounded-lg transition-colors border border-emerald-500/20"
                       >
                         Aprobar Pago
                       </button>
-                      <button 
+                      <button
                         onClick={() => actualizarEstado(pedido.id, 'Cancelado')}
                         className="flex-1 md:flex-none px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors"
                       >
@@ -246,14 +245,14 @@ export default function Ventas() {
                   )}
                   {pedido.estado === 'Pagado' && (
                     <>
-                      <button 
+                      <button
                         onClick={() => generarComprobante(pedido)}
                         className="px-4 py-2 bg-white hover:bg-zinc-200 text-zinc-900 text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         Comprobante
                       </button>
-                      <button 
+                      <button
                         onClick={() => window.open(`https://wa.me/${pedido.telefono_cliente.replace(/\D/g, '')}`, '_blank')}
                         className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                       >
@@ -264,7 +263,7 @@ export default function Ventas() {
                   )}
                 </div>
               </div>
-              
+
               <div className="p-6 bg-zinc-900/50 flex flex-col md:flex-row gap-8">
                 <div className="flex-1 space-y-4">
                   <div>
@@ -281,7 +280,7 @@ export default function Ventas() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-[2]">
                   <p className="text-xs font-medium text-zinc-500 mb-3">Artículos del Pedido</p>
                   <div className="space-y-3">

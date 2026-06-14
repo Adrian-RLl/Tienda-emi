@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Inter', ui-sans-serif, system-ui, sans-serif; /* Override serif to avoid messy mix if left in classes */
+  --font-serif: 'Playfair Display', Georgia, ui-serif, serif;
 }
 
 :root {

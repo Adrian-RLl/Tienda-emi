@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { CartContext } from '../context/CartContext';
@@ -10,6 +10,18 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [fotoActiva, setFotoActiva] = useState(0); 
   const { agregarAlCarrito } = useContext(CartContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     async function fetchProducto() {
@@ -33,7 +45,8 @@ export default function ProductDetail() {
   const siguienteFoto = () => setFotoActiva((prev) => (prev === galeria.length - 1 ? 0 : prev + 1));
   const anteriorFoto = () => setFotoActiva((prev) => (prev === 0 ? galeria.length - 1 : prev - 1));
 
-  const stockTotal = (producto.stock_s || 0) + (producto.stock_m || 0) + (producto.stock_l || 0);
+  const tallasSoportadas = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+  const stockTotal = tallasSoportadas.reduce((acc, t) => acc + (producto[`stock_${t}`] || 0), 0);
   const estaAgotado = stockTotal <= 0;
   const isOferta = producto.precio_oferta && producto.precio_oferta < producto.precio;
   const porcentaje = isOferta 
@@ -61,8 +74,8 @@ export default function ProductDetail() {
             </Link>
 
             {isOferta && (
-              <div className="absolute top-6 right-6 bg-red-600 text-white px-4 py-1.5 text-sm font-bold tracking-widest z-10 rounded-full shadow-lg">
-                -{porcentaje}% OFERTA
+              <div className="absolute top-6 right-6 bg-amber-800 text-white px-4 py-1.5 text-xs font-semibold tracking-[0.15em] z-10 rounded-none shadow-sm uppercase">
+                -{porcentaje}% OFF
               </div>
             )}
 
@@ -108,7 +121,7 @@ export default function ProductDetail() {
         {/* LADO DERECHO: CONTENIDO */}
         <div className="flex flex-col justify-center py-6 md:py-12 space-y-10">
           <div className="space-y-4">
-            <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight font-serif">
               {producto.nombre}
             </h1>
             <div className="flex items-center gap-4">
@@ -136,35 +149,69 @@ export default function ProductDetail() {
           </div>
 
           {/* TALLAS */}
-          <div className="space-y-4">
+          <div className="space-y-4" ref={dropdownRef}>
             <div className="flex justify-between items-end">
-              <p className="text-sm font-medium text-gray-900">Seleccionar Talla</p>
+              <span className="text-sm font-medium text-gray-900 tracking-wide">Seleccionar Talla</span>
             </div>
-            <div className="flex gap-3">
-              {['S', 'M', 'L'].map((t) => {
-                const tieneStock = producto[`stock_${t.toLowerCase()}`] > 0;
-                return (
-                  <button
-                    key={t}
-                    disabled={!tieneStock}
-                    onClick={() => setTallaSeleccionada(t)}
-                    className={`h-12 w-16 border text-sm font-medium transition-all duration-200 relative ${
-                      !tieneStock
-                      ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed'
-                      : tallaSeleccionada === t 
-                        ? 'bg-gray-900 border-gray-900 text-white' 
-                        : 'border-gray-200 text-gray-900 hover:border-gray-900'
-                    }`}
+            
+            <div className="relative w-full">
+              <button
+                type="button"
+                disabled={estaAgotado}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className={`w-full flex items-center justify-between border p-4 text-sm font-medium tracking-wide transition-all duration-300 ${
+                  estaAgotado 
+                    ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'border-gray-200 bg-white text-gray-900 hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900'
+                }`}
+              >
+                <span>
+                  {estaAgotado 
+                    ? 'No hay tallas disponibles' 
+                    : tallaSeleccionada 
+                      ? `Talla ${tallaSeleccionada} (${producto[`stock_${tallaSeleccionada.toLowerCase()}`]} disponible${producto[`stock_${tallaSeleccionada.toLowerCase()}`] !== 1 ? 's' : ''})`
+                      : 'Selecciona una talla...'
+                  }
+                </span>
+                {!estaAgotado && (
+                  <svg 
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
                   >
-                    {t}
-                    {!tieneStock && (
-                      <svg className="absolute inset-0 w-full h-full text-gray-200" preserveAspectRatio="none" viewBox="0 0 100 100">
-                        <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="2" />
-                      </svg>
-                    )}
-                  </button>
-                );
-              })}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </button>
+
+              {dropdownOpen && !estaAgotado && (
+                <div className="absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-200 shadow-xl max-h-60 overflow-y-auto select-none animate-fadeIn">
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL']
+                    .filter((t) => (producto[`stock_${t.toLowerCase()}`] || 0) > 0)
+                    .map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setTallaSeleccionada(t);
+                          setDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-gray-50 flex items-center justify-between ${
+                          tallaSeleccionada === t 
+                            ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        <span>Talla {t}</span>
+                        <span className={`text-xs ${tallaSeleccionada === t ? 'text-gray-300' : 'text-gray-400'}`}>
+                          {producto[`stock_${t.toLowerCase()}`]} disp.
+                        </span>
+                      </button>
+                    ))
+                  }
+                </div>
+              )}
             </div>
           </div>
 

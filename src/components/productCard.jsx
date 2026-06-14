@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 export default function ProductCard({ producto }) {
   const navigate = useNavigate();
   // Compute stock across sizes
-  const stockS = producto.stock_s || 0;
-  const stockM = producto.stock_m || 0;
-  const stockL = producto.stock_l || 0;
-  const hayStock = (stockS + stockM + stockL) > 0;
+  const tallasSoportadas = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+  const hayStock = tallasSoportadas.some(t => (producto[`stock_${t}`] || 0) > 0);
   
   const isOferta = producto.precio_oferta && producto.precio_oferta < producto.precio;
   const porcentaje = isOferta 
@@ -27,8 +25,8 @@ export default function ProductCard({ producto }) {
             </span>
           )}
           {isOferta && (
-            <span className="bg-red-600/90 backdrop-blur-sm text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
-              -{porcentaje}% OFERTA
+            <span className="bg-amber-800/90 backdrop-blur-sm text-white px-3 py-1 text-[9px] font-bold uppercase tracking-widest">
+              -{porcentaje}% OFF
             </span>
           )}
         </div>

@@ -86,7 +86,7 @@ export default function GestionProductos({ productoEditando, setProductoEditando
       }
     } else {
       const { error } = await supabase.from('products').insert([
-        { ...productData, stock_s: 0, stock_m: 0, stock_l: 0 }
+        { ...productData, stock_xs: 0, stock_s: 0, stock_m: 0, stock_l: 0, stock_xl: 0, stock_xxl: 0 }
       ]);
 
       if (!error) {

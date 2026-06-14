@@ -104,12 +104,12 @@ export default function InventarioTallas({ onEdit }) {
             <div className="flex flex-col sm:flex-row sm:items-center gap-6 lg:border-l lg:border-zinc-800 lg:pl-8">
               <div className="flex flex-col gap-3">
                 <div className="flex gap-4">
-                  {['s', 'm', 'l'].map((t) => (
+                  {['xs', 's', 'm', 'l', 'xl', 'xxl'].map((t) => (
                     <div key={t} className="flex flex-col gap-1.5">
                       <label className="text-xs font-medium text-zinc-500 uppercase text-center">{t}</label>
                       <input 
                         type="number"
-                        value={p[`stock_${t}`]}
+                        value={p[`stock_${t}`] ?? 0}
                         onChange={(e) => manejarCambio(p.id, `stock_${t}`, e.target.value)}
                         className="w-12 h-10 bg-zinc-950 border border-zinc-800 rounded-md text-center text-sm font-medium text-white focus:border-zinc-600 outline-none transition-colors"
                       />

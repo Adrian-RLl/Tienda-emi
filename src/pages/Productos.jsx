@@ -28,7 +28,7 @@ export default function Productos() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex flex-col items-center mb-16">
-          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-8 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-8 tracking-tight font-serif">
             Nuestra Colección
           </h1>
           
@@ -51,7 +51,8 @@ export default function Productos() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {productos.map((item) => {
-              const totalTallas = (item.stock_s || 0) + (item.stock_m || 0) + (item.stock_l || 0);
+              const tallasSoportadas = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+              const totalTallas = tallasSoportadas.reduce((acc, t) => acc + (item[`stock_${t}`] || 0), 0);
               const productoSincronizado = { ...item, stock: totalTallas };
 
               return (
